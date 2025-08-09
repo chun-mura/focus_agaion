@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-    width: 380px;
+    width: 380px !important;
     min-height: 480px;
     background: white;
     border-radius: 12px;
@@ -209,7 +209,7 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 400px) {
+@media (max-width: 380px) {
     .container {
         width: 100%;
         border-radius: 0;
