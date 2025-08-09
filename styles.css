@@ -1,57 +1,57 @@
 /* YouTube Focus Extension - CSS Styles */
 
-/* ホームページの推奨動画グリッドを非表示 */
-ytd-rich-grid-renderer {
+/* ホームページの推奨動画グリッドを非表示（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-rich-grid-renderer {
     display: none !important;
 }
 
-/* 個別の動画アイテムを非表示 */
-ytd-rich-item-renderer {
+/* 個別の動画アイテムを非表示（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-rich-item-renderer {
     display: none !important;
 }
 
-/* ショート動画セクションを非表示 */
-ytd-reel-shelf-renderer {
+/* ショート動画セクションを非表示（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-reel-shelf-renderer {
     display: none !important;
 }
 
-/* 検索結果ページのショート動画を非表示 */
-.shortsLockupViewModelHost {
+/* 検索結果ページのショート動画を非表示（設定が有効な場合のみ） */
+.youtube-focus-enabled .shortsLockupViewModelHost {
     display: none !important;
 }
 
-/* 代替的なショート動画検出 */
-ytd-video-renderer:has(ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"]) {
+/* 代替的なショート動画検出（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-video-renderer:has(ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"]) {
     display: none !important;
 }
 
-/* ytd-reel-item-renderer（ショート動画専用レンダラー）を非表示 */
-ytd-reel-item-renderer {
+/* ytd-reel-item-renderer（ショート動画専用レンダラー）を非表示（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-reel-item-renderer {
     display: none !important;
 }
 
-/* ショート動画ページ全体を非表示 */
-ytd-shorts-player {
+/* ショート動画ページ全体を非表示（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-shorts-player {
     display: none !important;
 }
 
-/* 検索結果ページの「ショート」セクション全体を非表示 (タイトルを含む棚) */
-ytd-shelf-renderer:has(yt-formatted-string[id="title"][title="ショート"]) {
+/* 検索結果ページの「ショート」セクション全体を非表示 (タイトルを含む棚)（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-shelf-renderer:has(yt-formatted-string[id="title"][title="ショート"]) {
     display: none !important;
 }
 
-/* 検索結果ページのショート動画セクション（より包括的） */
-ytd-shelf-renderer:has(yt-formatted-string:contains("ショート")) {
+/* 検索結果ページのショート動画セクション（より包括的）（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-shelf-renderer:has(yt-formatted-string:contains("ショート")) {
     display: none !important;
 }
 
-/* ショート動画のタイトルセクション */
-ytd-shelf-renderer:has(#title:contains("ショート")) {
+/* ショート動画のタイトルセクション（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-shelf-renderer:has(#title:contains("ショート")) {
     display: none !important;
 }
 
-/* 非表示にされた要素の代替メッセージ */
-ytd-rich-grid-renderer::before {
+/* 非表示にされた要素の代替メッセージ（設定が有効な場合のみ） */
+.youtube-focus-enabled ytd-rich-grid-renderer::before {
     content: "YouTube Focus: 推奨動画は非表示になっています";
     display: block !important;
     padding: 20px;
@@ -63,8 +63,8 @@ ytd-rich-grid-renderer::before {
     margin: 20px;
 }
 
-/* 検索結果ページでのショート動画非表示メッセージ */
-.shortsLockupViewModelHost::before {
+/* 検索結果ページでのショート動画非表示メッセージ（設定が有効な場合のみ） */
+.youtube-focus-enabled .shortsLockupViewModelHost::before {
     content: "ショート動画は非表示になっています";
     display: block !important;
     padding: 10px;
@@ -77,7 +77,12 @@ ytd-rich-grid-renderer::before {
 }
 
 /* 設定で無効化されている場合のスタイル */
-.extension-disabled {
+.youtube-focus-disabled ytd-rich-grid-renderer,
+.youtube-focus-disabled ytd-rich-item-renderer,
+.youtube-focus-disabled ytd-reel-shelf-renderer,
+.youtube-focus-disabled .shortsLockupViewModelHost,
+.youtube-focus-disabled ytd-reel-item-renderer,
+.youtube-focus-disabled ytd-shorts-player {
     display: block !important;
 }
 
@@ -89,13 +94,13 @@ ytd-rich-grid-renderer::before {
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
-    ytd-rich-grid-renderer::before {
+    .youtube-focus-enabled ytd-rich-grid-renderer::before {
         font-size: 12px;
         padding: 15px;
         margin: 15px;
     }
 
-    .shortsLockupViewModelHost::before {
+    .youtube-focus-enabled .shortsLockupViewModelHost::before {
         font-size: 10px;
         padding: 8px;
         margin: 8px;

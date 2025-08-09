@@ -3,9 +3,9 @@
 class PopupManager {
     constructor() {
         this.settings = {
-            hideSuggestions: true,
-            hideShorts: true,
-            hideShortsInSearch: true
+            hideSuggestions: false,
+            hideShorts: false,
+            hideShortsInSearch: false
         };
 
         this.init();
@@ -21,8 +21,11 @@ class PopupManager {
     // 設定を読み込み
     async loadSettings() {
         try {
+            console.log('YouTube Focus: 設定読み込み開始');
             const result = await chrome.storage.sync.get(this.settings);
+            console.log('YouTube Focus: ストレージから取得した設定:', result);
             this.settings = { ...this.settings, ...result };
+            console.log('YouTube Focus: 最終設定:', this.settings);
         } catch (error) {
             console.error('設定の読み込みに失敗しました:', error);
         }
@@ -31,17 +34,21 @@ class PopupManager {
     // 設定を保存
     async saveSettings() {
         try {
+            console.log('YouTube Focus: 設定保存開始:', this.settings);
             await chrome.storage.sync.set(this.settings);
-            console.log('設定を保存しました:', this.settings);
+            console.log('YouTube Focus: 設定を保存しました:', this.settings);
 
             // 現在のYouTubeタブに設定変更を通知
             const tabs = await chrome.tabs.query({ url: 'https://www.youtube.com/*' });
+            console.log('YouTube Focus: 通知対象タブ数:', tabs.length);
             for (const tab of tabs) {
                 try {
+                    console.log('YouTube Focus: タブに設定変更を通知中:', tab.id);
                     await chrome.tabs.sendMessage(tab.id, {
                         action: 'updateSettings',
                         settings: this.settings
                     });
+                    console.log('YouTube Focus: タブへの通知完了:', tab.id);
                 } catch (error) {
                     // タブが閉じられている場合などは無視
                     console.log('タブへのメッセージ送信に失敗:', error);
@@ -59,9 +66,9 @@ class PopupManager {
     async resetSettings() {
         try {
             const defaultSettings = {
-                hideSuggestions: true,
-                hideShorts: true,
-                hideShortsInSearch: true
+                hideSuggestions: false,
+                hideShorts: false,
+                hideShortsInSearch: false
             };
 
             await chrome.storage.sync.set(defaultSettings);
