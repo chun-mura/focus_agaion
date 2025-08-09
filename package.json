@@ -1,0 +1,35 @@
+{
+  "name": "youtube-focus-extension",
+  "version": "1.0.0",
+  "description": "YouTubeのサジェスト欄とショート動画を非表示にして、集中力を向上させるChrome拡張機能",
+  "main": "manifest.json",
+  "scripts": {
+    "build": "echo 'Chrome拡張機能のビルドが完了しました'",
+    "dev": "echo '開発モードで実行中...'",
+    "test": "echo 'テストを実行中...'",
+    "lint": "echo 'コードの静的解析を実行中...'",
+    "package": "zip -r youtube-focus-extension.zip . -x '*.git*' 'node_modules/*' '*.DS_Store'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "youtube",
+    "focus",
+    "productivity",
+    "manifest-v3"
+  ],
+  "author": "YouTube Focus Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/youtube-focus-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/youtube-focus-extension/issues"
+  },
+  "homepage": "https://github.com/your-username/youtube-focus-extension#readme",
+  "devDependencies": {},
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
