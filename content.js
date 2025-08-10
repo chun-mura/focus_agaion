@@ -14,9 +14,9 @@
     // Chrome APIが利用可能かチェックする関数
     function isChromeAPIAvailable() {
         return typeof chrome !== 'undefined' &&
-               chrome.runtime &&
-               chrome.storage &&
-               chrome.storage.sync;
+                chrome.runtime &&
+                chrome.storage &&
+                chrome.storage.sync;
     }
 
     // 設定を取得
