@@ -53,7 +53,7 @@
             // chrome APIが利用可能かチェック
             if (!isChromeAPIAvailable()) {
                 console.warn('chrome.storageが利用できません。デフォルト設定を使用します。');
-                console.log('YouTube Focus: デフォルト設定を使用:', defaultSettings);
+                console.log('Focus Agaion: デフォルト設定を使用:', defaultSettings);
                 resolve(defaultSettings);
                 return;
             }
@@ -75,7 +75,7 @@
                     }
 
                     if (hasError) {
-                        console.log('YouTube Focus: エラーのためデフォルト設定を使用:', defaultSettings);
+                        console.log('Focus Agaion: エラーのためデフォルト設定を使用:', defaultSettings);
                         resolve(defaultSettings);
                     } else {
                         // 結果が存在しない場合や、必要なプロパティが存在しない場合はデフォルト設定を使用
@@ -89,7 +89,7 @@
                     }
                 } catch (error) {
                     console.warn('設定の取得中にエラーが発生しました:', error);
-                    console.log('YouTube Focus: エラーのためデフォルト設定を使用:', defaultSettings);
+                    console.log('Focus Agaion: エラーのためデフォルト設定を使用:', defaultSettings);
                     resolve(defaultSettings);
                 }
             };
@@ -101,12 +101,12 @@
                     chrome.storage.sync.get(defaultSettings, handleStorageResult);
                 } else {
                     console.warn('chrome.storage.sync.getが利用できません。デフォルト設定を使用します。');
-                    console.log('YouTube Focus: デフォルト設定を使用:', defaultSettings);
+                    console.log('Focus Agaion: デフォルト設定を使用:', defaultSettings);
                     resolve(defaultSettings);
                 }
             } catch (error) {
                 console.warn('設定の取得中にエラーが発生しました:', error);
-                console.log('YouTube Focus: エラーのためデフォルト設定を使用:', defaultSettings);
+                console.log('Focus Agaion: エラーのためデフォルト設定を使用:', defaultSettings);
                 resolve(defaultSettings);
             }
         });
@@ -117,7 +117,7 @@
         if (element && !element.dataset.hiddenByExtension) {
             element.dataset.hiddenByExtension = reason;
             element.style.display = 'none';
-            console.log(`YouTube Focus: 要素を非表示にしました - ${reason}`);
+            console.log(`Focus Agaion: 要素を非表示にしました - ${reason}`);
         }
     }
 
@@ -125,26 +125,26 @@
     function showElement(element) {
         if (element && element.dataset.hiddenByExtension) {
             const reason = element.dataset.hiddenByExtension;
-            console.log(`YouTube Focus: 要素を再表示中 - ${reason}`, element);
+            console.log(`Focus Agaion: 要素を再表示中 - ${reason}`, element);
             delete element.dataset.hiddenByExtension;
             // 元の表示状態を復元（display: noneを削除）
             element.style.removeProperty('display');
-            console.log(`YouTube Focus: 要素を再表示しました - ${reason}`, element);
+            console.log(`Focus Agaion: 要素を再表示しました - ${reason}`, element);
         } else if (element && element.style.display === 'none') {
-            console.log(`YouTube Focus: 要素がdisplay: noneで非表示になっているため再表示中...`, element);
+            console.log(`Focus Agaion: 要素がdisplay: noneで非表示になっているため再表示中...`, element);
             element.style.removeProperty('display');
-            console.log(`YouTube Focus: 要素を再表示しました`, element);
+            console.log(`Focus Agaion: 要素を再表示しました`, element);
         } else if (element) {
-            console.log(`YouTube Focus: 要素は既に表示されています`, element);
+            console.log(`Focus Agaion: 要素は既に表示されています`, element);
         } else {
-            console.log(`YouTube Focus: 要素が無効です`);
+            console.log(`Focus Agaion: 要素が無効です`);
         }
     }
 
     // 特定の理由で非表示にされた要素を再表示する関数
     function showElementsByReason(reason) {
         const hiddenElements = document.querySelectorAll(`[data-hidden-by-extension="${reason}"]`);
-        console.log(`YouTube Focus: ${reason} で非表示にされた要素を検索中...`, hiddenElements.length, '個見つかりました');
+        console.log(`Focus Agaion: ${reason} で非表示にされた要素を検索中...`, hiddenElements.length, '個見つかりました');
         hiddenElements.forEach(element => {
             showElement(element);
         });
@@ -154,13 +154,13 @@
         let displayNoneCount = 0;
         allElements.forEach(element => {
             if (element.style.display === 'none' && element.dataset.hiddenByExtension === reason) {
-                console.log(`YouTube Focus: ${reason} でdisplay: noneが設定されている要素を発見:`, element);
+                console.log(`Focus Agaion: ${reason} でdisplay: noneが設定されている要素を発見:`, element);
                 showElement(element);
                 displayNoneCount++;
             }
         });
         if (displayNoneCount > 0) {
-            console.log(`YouTube Focus: ${reason} でdisplay: noneが設定されていた要素を${displayNoneCount}個再表示しました`);
+            console.log(`Focus Agaion: ${reason} でdisplay: noneが設定されていた要素を${displayNoneCount}個再表示しました`);
         }
     }
 
@@ -214,7 +214,7 @@
 
     // ホームページのショート動画セクションを再表示
     function showHomePageShorts() {
-        console.log('YouTube Focus: ホームページのショート動画を再表示中...');
+        console.log('Focus Agaion: ホームページのショート動画を再表示中...');
 
         showElementsByReason('ホームページショート動画セクション');
         showElementsByReason('ホームページショート動画アイテム');
@@ -231,29 +231,29 @@
 
             if (isShorts) {
                 if (item.dataset.hiddenByExtension === 'ホームページショート動画アイテム') {
-                    console.log(`YouTube Focus: ショート動画アイテム${index}を再表示中...`);
+                    console.log(`Focus Agaion: ショート動画アイテム${index}を再表示中...`);
                     showElement(item);
                 } else if (item.style.display === 'none' && item.dataset.hiddenByExtension === 'ホームページショート動画アイテム') {
-                    console.log(`YouTube Focus: ショート動画アイテム${index}がdisplay: noneで非表示になっているため再表示中...`);
+                    console.log(`Focus Agaion: ショート動画アイテム${index}がdisplay: noneで非表示になっているため再表示中...`);
                     item.style.removeProperty('display');
-                    console.log(`YouTube Focus: ショート動画アイテム${index}を再表示しました`);
+                    console.log(`Focus Agaion: ショート動画アイテム${index}を再表示しました`);
                 }
             }
         });
 
-        console.log('YouTube Focus: ホームページのショート動画の再表示完了');
+        console.log('Focus Agaion: ホームページのショート動画の再表示完了');
     }
 
     // ホームページのサジェスト欄を再表示
     function showHomePageSuggestions() {
-        console.log('YouTube Focus: ホームページの推奨動画を再表示中...');
+        console.log('Focus Agaion: ホームページの推奨動画を再表示中...');
 
         // まず、data-hidden-by-extension属性を持つ要素を検索して再表示
         showElementsByReason('ホームページ推奨動画アイテム');
 
         // 個別の推奨動画アイテムを再表示
         const videoItems = document.querySelectorAll('ytd-rich-item-renderer');
-        console.log('YouTube Focus: 動画アイテム要素を発見:', videoItems.length, '個');
+        console.log('Focus Agaion: 動画アイテム要素を発見:', videoItems.length, '個');
         videoItems.forEach((item, index) => {
             // ショート動画でない場合のみ再表示する
             const isShorts = item.querySelector('ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"]') ||
@@ -264,17 +264,17 @@
 
             if (!isShorts) {
                 if (item.dataset.hiddenByExtension === 'ホームページ推奨動画アイテム') {
-                    console.log(`YouTube Focus: 推奨動画アイテム${index}を再表示中...`);
+                    console.log(`Focus Agaion: 推奨動画アイテム${index}を再表示中...`);
                     showElement(item);
                 } else if (item.style.display === 'none' && item.dataset.hiddenByExtension === 'ホームページ推奨動画アイテム') {
-                    console.log(`YouTube Focus: 推奨動画アイテム${index}がdisplay: noneで非表示になっているため再表示中...`);
+                    console.log(`Focus Agaion: 推奨動画アイテム${index}がdisplay: noneで非表示になっているため再表示中...`);
                     item.style.removeProperty('display');
-                    console.log(`YouTube Focus: 推奨動画アイテム${index}を再表示しました`);
+                    console.log(`Focus Agaion: 推奨動画アイテム${index}を再表示しました`);
                 }
             }
         });
 
-        console.log('YouTube Focus: ホームページの推奨動画の再表示完了');
+        console.log('Focus Agaion: ホームページの推奨動画の再表示完了');
     }
 
     // 検索結果ページのショート動画を非表示
@@ -341,9 +341,9 @@
                 video.currentTime = 0;
                 video.setAttribute('muted', 'true');
                 video.setAttribute('volume', '0');
-                console.log('YouTube Focus: 動画要素を強制的に停止しました');
+                console.log('Focus Agaion: 動画要素を強制的に停止しました');
             } catch (error) {
-                console.log('YouTube Focus: 動画要素の停止中にエラーが発生しました:', error);
+                console.log('Focus Agaion: 動画要素の停止中にエラーが発生しました:', error);
             }
         });
 
@@ -414,7 +414,7 @@
                 // 動画を一時停止
                 if (!video.paused) {
                     video.pause();
-                    console.log('YouTube Focus: 動画を一時停止しました');
+                    console.log('Focus Agaion: 動画を一時停止しました');
                 }
                 // 音声をミュート
                 video.muted = true;
@@ -422,7 +422,7 @@
                 // 音声を無効化
                 video.setAttribute('muted', 'true');
                 video.setAttribute('volume', '0');
-                console.log('YouTube Focus: 動画の音声を停止しました');
+                console.log('Focus Agaion: 動画の音声を停止しました');
             }
         });
 
@@ -433,13 +433,13 @@
             if (playerVideo) {
                 if (!playerVideo.paused) {
                     playerVideo.pause();
-                    console.log('YouTube Focus: プレーヤーの動画を一時停止しました');
+                    console.log('Focus Agaion: プレーヤーの動画を一時停止しました');
                 }
                 playerVideo.muted = true;
                 playerVideo.volume = 0;
                 playerVideo.setAttribute('muted', 'true');
                 playerVideo.setAttribute('volume', '0');
-                console.log('YouTube Focus: プレーヤーの音声を停止しました');
+                console.log('Focus Agaion: プレーヤーの音声を停止しました');
             }
         });
 
@@ -449,13 +449,13 @@
             if (video) {
                 if (!video.paused) {
                     video.pause();
-                    console.log('YouTube Focus: ショート動画専用プレーヤーの動画を一時停止しました');
+                    console.log('Focus Agaion: ショート動画専用プレーヤーの動画を一時停止しました');
                 }
                 video.muted = true;
                 video.volume = 0;
                 video.setAttribute('muted', 'true');
                 video.setAttribute('volume', '0');
-                console.log('YouTube Focus: ショート動画専用プレーヤーの音声を停止しました');
+                console.log('Focus Agaion: ショート動画専用プレーヤーの音声を停止しました');
             }
         });
 
@@ -465,7 +465,7 @@
             if (media) {
                 if (!media.paused) {
                     media.pause();
-                    console.log('YouTube Focus: メディア要素を一時停止しました');
+                    console.log('Focus Agaion: メディア要素を一時停止しました');
                 }
                 media.muted = true;
                 if (media.volume !== undefined) {
@@ -475,7 +475,7 @@
                 if (media.hasAttribute('volume')) {
                     media.setAttribute('volume', '0');
                 }
-                console.log('YouTube Focus: メディア要素の音声を停止しました');
+                console.log('Focus Agaion: メディア要素の音声を停止しました');
             }
         });
 
@@ -487,13 +487,13 @@
                 if (playerVideo) {
                     if (!playerVideo.paused) {
                         playerVideo.pause();
-                        console.log('YouTube Focus: YouTubeプレーヤーの動画を一時停止しました');
+                        console.log('Focus Agaion: YouTubeプレーヤーの動画を一時停止しました');
                     }
                     playerVideo.muted = true;
                     playerVideo.volume = 0;
                     playerVideo.setAttribute('muted', 'true');
                     playerVideo.setAttribute('volume', '0');
-                    console.log('YouTube Focus: YouTubeプレーヤーの音声を停止しました');
+                    console.log('Focus Agaion: YouTubeプレーヤーの音声を停止しました');
                 }
             });
         }
@@ -508,16 +508,16 @@
                     const player = playerElement.getPlayer();
                     if (player && typeof player.pauseVideo === 'function') {
                         player.pauseVideo();
-                        console.log('YouTube Focus: YouTube内部APIで動画を一時停止しました');
+                        console.log('Focus Agaion: YouTube内部APIで動画を一時停止しました');
                     }
                     if (player && typeof player.mute === 'function') {
                         player.mute();
-                        console.log('YouTube Focus: YouTube内部APIで音声をミュートしました');
+                        console.log('Focus Agaion: YouTube内部APIで音声をミュートしました');
                     }
                 }
             });
         } catch (error) {
-            console.log('YouTube Focus: YouTube内部APIの使用中にエラーが発生しました:', error);
+            console.log('Focus Agaion: YouTube内部APIの使用中にエラーが発生しました:', error);
         }
     }
 
@@ -546,7 +546,7 @@
                 video.volume = 1;
                 video.removeAttribute('muted');
                 video.removeAttribute('volume');
-                console.log('YouTube Focus: 動画の音声を復活しました');
+                console.log('Focus Agaion: 動画の音声を復活しました');
             }
         });
 
@@ -559,7 +559,7 @@
                 playerVideo.volume = 1;
                 playerVideo.removeAttribute('muted');
                 playerVideo.removeAttribute('volume');
-                console.log('YouTube Focus: プレーヤーの音声を復活しました');
+                console.log('Focus Agaion: プレーヤーの音声を復活しました');
             }
         });
 
@@ -571,7 +571,7 @@
                 video.volume = 1;
                 video.removeAttribute('muted');
                 video.removeAttribute('volume');
-                console.log('YouTube Focus: ショート動画専用プレーヤーの音声を復活しました');
+                console.log('Focus Agaion: ショート動画専用プレーヤーの音声を復活しました');
             }
         });
 
@@ -587,7 +587,7 @@
                 if (media.hasAttribute('volume')) {
                     media.removeAttribute('volume');
                 }
-                console.log('YouTube Focus: メディア要素の音声を復活しました');
+                console.log('Focus Agaion: メディア要素の音声を復活しました');
             }
         });
 
@@ -601,12 +601,12 @@
                     const player = playerElement.getPlayer();
                     if (player && typeof player.unMute === 'function') {
                         player.unMute();
-                        console.log('YouTube Focus: YouTube内部APIで音声を復活しました');
+                        console.log('Focus Agaion: YouTube内部APIで音声を復活しました');
                     }
                 }
             });
         } catch (error) {
-            console.log('YouTube Focus: YouTube内部APIの使用中にエラーが発生しました:', error);
+            console.log('Focus Agaion: YouTube内部APIの使用中にエラーが発生しました:', error);
         }
     }
 
@@ -643,15 +643,15 @@
 
             // ホームページの処理
             if (path === '/') {
-                console.log('YouTube Focus: ホームページを処理中...');
+                console.log('Focus Agaion: ホームページを処理中...');
 
                 // 推奨動画/ショート動画の処理
                 if (settings.hideSuggestions) {
-                    console.log('YouTube Focus: ホームページの推奨動画を非表示にします');
+                    console.log('Focus Agaion: ホームページの推奨動画を非表示にします');
                     hideHomePageSuggestions();
                     hideHomePageShorts();
                 } else {
-                    console.log('YouTube Focus: ホームページの推奨動画設定がオフのため、再表示します');
+                    console.log('Focus Agaion: ホームページの推奨動画設定がオフのため、再表示します');
                     showHomePageSuggestions();
                     showHomePageShorts();
                 }
@@ -660,10 +660,10 @@
             // 検索結果ページの処理
             if (path.includes('/results')) {
                 if (settings.hideShortsInSearch) {
-                    console.log('YouTube Focus: 検索結果ページのショート動画を非表示にします');
+                    console.log('Focus Agaion: 検索結果ページのショート動画を非表示にします');
                     hideSearchResultsShorts();
                 } else {
-                    console.log('YouTube Focus: 検索結果ページのショート動画設定がオフのため、再表示します');
+                    console.log('Focus Agaion: 検索結果ページのショート動画設定がオフのため、再表示します');
                     showSearchResultsShorts();
                 }
             }
@@ -671,10 +671,10 @@
             // ショート動画ページの処理
             if (path.includes('/shorts/')) {
                 if (settings.hideShorts) {
-                    console.log('YouTube Focus: ショート動画ページを非表示にします');
+                    console.log('Focus Agaion: ショート動画ページを非表示にします');
                     hideShortsPage();
                 } else {
-                    console.log('YouTube Focus: ショート動画ページ設定がオフのため、再表示します');
+                    console.log('Focus Agaion: ショート動画ページ設定がオフのため、再表示します');
                     showShortsPage();
                 }
             }
@@ -683,13 +683,13 @@
             // エラーが発生した場合はデフォルト設定で処理
             try {
                 const path = window.location.pathname;
-                console.log('YouTube Focus: フォールバック処理開始', { path });
+                console.log('Focus Agaion: フォールバック処理開始', { path });
                 if (path === '/') {
-                    console.log('YouTube Focus: フォールバック: ホームページの推奨動画設定がオフのため、処理をスキップします');
+                    console.log('Focus Agaion: フォールバック: ホームページの推奨動画設定がオフのため、処理をスキップします');
                 } else if (path.includes('/results')) {
-                    console.log('YouTube Focus: フォールバック: 検索結果ページのショート動画設定がオフのため、処理をスキップします');
+                    console.log('Focus Agaion: フォールバック: 検索結果ページのショート動画設定がオフのため、処理をスキップします');
                 } else if (path.includes('/shorts/')) {
-                    console.log('YouTube Focus: フォールバック: ショート動画ページ設定がオフのため、処理をスキップします');
+                    console.log('Focus Agaion: フォールバック: ショート動画ページ設定がオフのため、処理をスキップします');
                 }
             } catch (fallbackError) {
                 console.warn('フォールバック処理中にもエラーが発生しました:', fallbackError);
@@ -730,11 +730,11 @@
         if (path === '/') {
             // 推奨動画/ショート動画の処理
             if (settings.hideSuggestions) {
-                console.log('YouTube Focus: ホームページの推奨動画を非表示にします');
+                console.log('Focus Agaion: ホームページの推奨動画を非表示にします');
                 hideHomePageSuggestions();
                 hideHomePageShorts();
             } else {
-                console.log('YouTube Focus: ホームページの推奨動画設定がオフのため、再表示します');
+                console.log('Focus Agaion: ホームページの推奨動画設定がオフのため、再表示します');
                 showHomePageSuggestions();
                 showHomePageShorts();
             }
@@ -743,10 +743,10 @@
         // 検索結果ページの処理
         if (path.includes('/results')) {
             if (settings.hideShortsInSearch) {
-                console.log('YouTube Focus: 検索結果ページのショート動画を非表示にします');
+                console.log('Focus Agaion: 検索結果ページのショート動画を非表示にします');
                 hideSearchResultsShorts();
             } else {
-                console.log('YouTube Focus: 検索結果ページのショート動画設定がオフのため、再表示します');
+                console.log('Focus Agaion: 検索結果ページのショート動画設定がオフのため、再表示します');
                 showSearchResultsShorts();
             }
         }
@@ -754,10 +754,10 @@
         // ショート動画ページの処理
         if (path.includes('/shorts/')) {
             if (settings.hideShorts) {
-                console.log('YouTube Focus: ショート動画ページを非表示にします');
+                console.log('Focus Agaion: ショート動画ページを非表示にします');
                 hideShortsPage();
             } else {
-                console.log('YouTube Focus: ショート動画ページ設定がオフのため、再表示します');
+                console.log('Focus Agaion: ショート動画ページ設定がオフのため、再表示します');
                 showShortsPage();
             }
         }
@@ -813,7 +813,7 @@
     function setupEventListeners() {
         // YouTubeのナビゲーションイベントを監視
         document.addEventListener('yt-navigate-start', () => {
-            console.log('YouTube Focus: ページ遷移開始');
+            console.log('Focus Agaion: ページ遷移開始');
         });
 
         document.addEventListener('yt-navigate-finish', () => {
@@ -825,7 +825,7 @@
         const urlObserver = new MutationObserver(() => {
             if (window.location.href !== currentUrl) {
                 currentUrl = window.location.href;
-                console.log('YouTube Focus: URL変更検出');
+                console.log('Focus Agaion: URL変更検出');
                 setTimeout(processCurrentPage, 500);
             }
         });
@@ -892,7 +892,7 @@
                 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     try {
                         if (request.action === 'updateSettings') {
-                            console.log('YouTube Focus: 設定更新を受信', request.settings);
+                            console.log('Focus Agaion: 設定更新を受信', request.settings);
                             // 設定を更新してから処理を実行
                             if (request.settings) {
                                 // 設定を即座に適用

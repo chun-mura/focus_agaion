@@ -1,4 +1,4 @@
-# YouTube Focus Extension
+# Focus Agaion Extension
 
 YouTubeのサジェスト欄とショート動画を非表示にして、集中力を向上させるChrome拡張機能です。
 

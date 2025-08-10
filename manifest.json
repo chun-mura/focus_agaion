@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Focus Extension",
+  "name": "Focus Agaion Extension",
   "version": "1.0.0",
   "description": "YouTubeのサジェスト欄とショート動画を非表示にして、集中力を向上させる拡張機能",
   "permissions": [
@@ -24,7 +24,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "YouTube Focus"
+    "default_title": "Focus Agaion"
   },
   "icons": {
     "16": "icons/icon16.png",

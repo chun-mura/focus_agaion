@@ -1,8 +1,8 @@
-// YouTube Focus Extension - Background Script (Service Worker)
+// Focus Agaion Extension - Background Script (Service Worker)
 
 // 拡張機能のインストール時の処理
 chrome.runtime.onInstalled.addListener((details) => {
-    console.log('YouTube Focus: 拡張機能がインストールされました', details.reason);
+    console.log('Focus Agaion: 拡張機能がインストールされました', details.reason);
 
     // デフォルト設定を初期化
     const defaultSettings = {
@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener((details) => {
         // 設定が存在しない場合のみ初期化
         if (!result.hasOwnProperty('hideSuggestions')) {
             chrome.storage.sync.set(defaultSettings, () => {
-                console.log('YouTube Focus: デフォルト設定を初期化しました');
+                console.log('Focus Agaion: デフォルト設定を初期化しました');
             });
         }
     });
@@ -32,7 +32,7 @@ chrome.action.onClicked.addListener((tab) => {
 // タブの更新を監視
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' && tab.url && tab.url.includes('youtube.com')) {
-        console.log('YouTube Focus: YouTubeページが読み込まれました');
+        console.log('Focus Agaion: YouTubeページが読み込まれました');
 
         // Content Scriptにメッセージを送信
         chrome.tabs.sendMessage(tabId, {
@@ -40,14 +40,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             url: tab.url
         }).catch(() => {
             // Content Scriptがまだ読み込まれていない場合は無視
-            console.log('YouTube Focus: Content Scriptがまだ読み込まれていません');
+            console.log('Focus Agaion: Content Scriptがまだ読み込まれていません');
         });
     }
 });
 
 // メッセージリスナー
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log('YouTube Focus: メッセージを受信', request);
+    console.log('Focus Agaion: メッセージを受信', request);
 
     switch (request.action) {
         case 'getSettings':
@@ -86,10 +86,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // エラーハンドリング
 chrome.runtime.onSuspend.addListener(() => {
-    console.log('YouTube Focus: Service Workerが停止します');
+    console.log('Focus Agaion: Service Workerが停止します');
 });
 
 // 定期的なヘルスチェック（オプション）
 setInterval(() => {
-    console.log('YouTube Focus: Service Worker ヘルスチェック');
+    console.log('Focus Agaion: Service Worker ヘルスチェック');
 }, 300000); // 5分ごと
