@@ -1,0 +1,34 @@
+{
+  "name": "focus-agaion-extension",
+  "version": "1.0.0",
+  "description": "YouTubeのサジェスト欄とショート動画を非表示にして、集中力を向上させる拡張機能",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
+    "type-check": "tsc --noEmit",
+    "docker:build": "docker build -t focus-agaion-extension .",
+    "docker:run": "docker run -it --rm -v $(pwd):/app focus-agaion-extension",
+    "docker:compose": "docker-compose up --build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chun-mura/focus_agaion.git"
+  },
+  "keywords": ["chrome-extension", "youtube", "focus", "typescript"],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chun-mura/focus_agaion/issues"
+  },
+  "homepage": "https://github.com/chun-mura/focus_agaion#readme",
+  "devDependencies": {
+    "@types/chrome": "^0.1.3",
+    "copy-webpack-plugin": "^13.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.9.2",
+    "webpack": "^5.101.0",
+    "webpack-cli": "^6.0.1"
+  }
+}
