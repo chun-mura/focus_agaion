@@ -50,8 +50,6 @@
     // 設定を取得
     async function getSettings() {
         return new Promise((resolve) => {
-            console.log('YouTube Focus: 設定取得開始');
-
             // chrome APIが利用可能かチェック
             if (!isChromeAPIAvailable()) {
                 console.warn('chrome.storageが利用できません。デフォルト設定を使用します。');
@@ -63,8 +61,6 @@
             // エラーハンドリング付きでストレージから取得
             const handleStorageResult = (result) => {
                 try {
-                    console.log('YouTube Focus: ストレージから取得した結果:', result);
-
                     // chrome.runtime.lastErrorを安全にチェック
                     let hasError = false;
                     try {
@@ -89,7 +85,6 @@
                             hideShorts: settings.hideShorts !== undefined ? settings.hideShorts : defaultSettings.hideShorts,
                             hideShortsInSearch: settings.hideShortsInSearch !== undefined ? settings.hideShortsInSearch : defaultSettings.hideShortsInSearch
                         };
-                        console.log('YouTube Focus: 最終設定:', finalSettings);
                         resolve(finalSettings);
                     }
                 } catch (error) {
@@ -103,7 +98,6 @@
             try {
                 // chrome.storage.sync.getの呼び出しを安全にラップ
                 if (typeof chrome.storage.sync.get === 'function') {
-                    console.log('YouTube Focus: chrome.storage.sync.getを呼び出し中...');
                     chrome.storage.sync.get(defaultSettings, handleStorageResult);
                 } else {
                     console.warn('chrome.storage.sync.getが利用できません。デフォルト設定を使用します。');
@@ -172,23 +166,82 @@
 
     // ホームページのサジェスト欄を非表示
     function hideHomePageSuggestions() {
-        // メインの推奨動画グリッド
-        const richGrid = document.querySelector('ytd-rich-grid-renderer');
-        if (richGrid) {
-            hideElement(richGrid, 'ホームページ推奨動画');
-        }
-
-        // 個別の動画アイテム
+        // 推奨動画アイテムのみを非表示にする（ショート動画は除外）
+        // 推奨動画は通常の動画アイテムで、ショート動画ではないもの
         const videoItems = document.querySelectorAll('ytd-rich-item-renderer');
         videoItems.forEach(item => {
-            hideElement(item, 'ホームページ動画アイテム');
-        });
+            // ショート動画でない場合のみ非表示にする
+            const isShorts = item.querySelector('ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"]') ||
+                            item.querySelector('.ytd-reel-item-renderer') ||
+                            item.closest('ytd-reel-shelf-renderer') ||
+                            item.querySelector('[aria-label*="ショート"]') ||
+                            item.querySelector('[aria-label*="Shorts"]');
 
-        // ショート動画セクション
+            if (!isShorts) {
+                hideElement(item, 'ホームページ推奨動画アイテム');
+            }
+        });
+    }
+
+    // ホームページのショート動画セクションを非表示
+    function hideHomePageShorts() {
+        // ショート動画セクション全体
         const shortsSection = document.querySelector('ytd-reel-shelf-renderer');
         if (shortsSection) {
-            hideElement(shortsSection, 'ホームページショート動画');
+            hideElement(shortsSection, 'ホームページショート動画セクション');
         }
+
+        // ショート動画専用レンダラー
+        const reelItems = document.querySelectorAll('ytd-reel-item-renderer');
+        reelItems.forEach(item => {
+            hideElement(item, 'ホームページショート動画レンダラー');
+        });
+
+        // ショート動画として識別される動画アイテムのみ
+        const shortsItems = document.querySelectorAll('ytd-rich-item-renderer');
+        shortsItems.forEach(item => {
+            const isShorts = item.querySelector('ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"]') ||
+                            item.querySelector('.ytd-reel-item-renderer') ||
+                            item.closest('ytd-reel-shelf-renderer') ||
+                            item.querySelector('[aria-label*="ショート"]') ||
+                            item.querySelector('[aria-label*="Shorts"]');
+
+            if (isShorts) {
+                hideElement(item, 'ホームページショート動画アイテム');
+            }
+        });
+    }
+
+    // ホームページのショート動画セクションを再表示
+    function showHomePageShorts() {
+        console.log('YouTube Focus: ホームページのショート動画を再表示中...');
+
+        showElementsByReason('ホームページショート動画セクション');
+        showElementsByReason('ホームページショート動画アイテム');
+        showElementsByReason('ホームページショート動画レンダラー');
+
+        // ショート動画として識別される動画アイテムのみを再表示
+        const shortsItems = document.querySelectorAll('ytd-rich-item-renderer');
+        shortsItems.forEach((item, index) => {
+            const isShorts = item.querySelector('ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"]') ||
+                            item.querySelector('.ytd-reel-item-renderer') ||
+                            item.closest('ytd-reel-shelf-renderer') ||
+                            item.querySelector('[aria-label*="ショート"]') ||
+                            item.querySelector('[aria-label*="Shorts"]');
+
+            if (isShorts) {
+                if (item.dataset.hiddenByExtension === 'ホームページショート動画アイテム') {
+                    console.log(`YouTube Focus: ショート動画アイテム${index}を再表示中...`);
+                    showElement(item);
+                } else if (item.style.display === 'none' && item.dataset.hiddenByExtension === 'ホームページショート動画アイテム') {
+                    console.log(`YouTube Focus: ショート動画アイテム${index}がdisplay: noneで非表示になっているため再表示中...`);
+                    item.style.removeProperty('display');
+                    console.log(`YouTube Focus: ショート動画アイテム${index}を再表示しました`);
+                }
+            }
+        });
+
+        console.log('YouTube Focus: ホームページのショート動画の再表示完了');
     }
 
     // ホームページのサジェスト欄を再表示
@@ -196,57 +249,30 @@
         console.log('YouTube Focus: ホームページの推奨動画を再表示中...');
 
         // まず、data-hidden-by-extension属性を持つ要素を検索して再表示
-        showElementsByReason('ホームページ推奨動画');
-        showElementsByReason('ホームページ動画アイテム');
-        showElementsByReason('ホームページショート動画');
+        showElementsByReason('ホームページ推奨動画アイテム');
 
-        // 追加: 直接要素を検索して再表示
-        const richGrid = document.querySelector('ytd-rich-grid-renderer');
-        if (richGrid) {
-            console.log('YouTube Focus: richGrid要素を発見:', richGrid);
-            if (richGrid.dataset.hiddenByExtension) {
-                console.log('YouTube Focus: richGrid要素を再表示中...');
-                showElement(richGrid);
-            } else if (richGrid.style.display === 'none') {
-                console.log('YouTube Focus: richGrid要素がdisplay: noneで非表示になっているため再表示中...');
-                richGrid.style.removeProperty('display');
-                console.log('YouTube Focus: richGrid要素を再表示しました');
-            } else {
-                console.log('YouTube Focus: richGrid要素は既に表示されています');
-            }
-        } else {
-            console.log('YouTube Focus: richGrid要素が見つかりません');
-        }
-
+        // 個別の推奨動画アイテムを再表示
         const videoItems = document.querySelectorAll('ytd-rich-item-renderer');
         console.log('YouTube Focus: 動画アイテム要素を発見:', videoItems.length, '個');
         videoItems.forEach((item, index) => {
-            if (item.dataset.hiddenByExtension) {
-                console.log(`YouTube Focus: 動画アイテム${index}を再表示中...`);
-                showElement(item);
-            } else if (item.style.display === 'none') {
-                console.log(`YouTube Focus: 動画アイテム${index}がdisplay: noneで非表示になっているため再表示中...`);
-                item.style.removeProperty('display');
-                console.log(`YouTube Focus: 動画アイテム${index}を再表示しました`);
+            // ショート動画でない場合のみ再表示する
+            const isShorts = item.querySelector('ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"]') ||
+                            item.querySelector('.ytd-reel-item-renderer') ||
+                            item.closest('ytd-reel-shelf-renderer') ||
+                            item.querySelector('[aria-label*="ショート"]') ||
+                            item.querySelector('[aria-label*="Shorts"]');
+
+            if (!isShorts) {
+                if (item.dataset.hiddenByExtension === 'ホームページ推奨動画アイテム') {
+                    console.log(`YouTube Focus: 推奨動画アイテム${index}を再表示中...`);
+                    showElement(item);
+                } else if (item.style.display === 'none' && item.dataset.hiddenByExtension === 'ホームページ推奨動画アイテム') {
+                    console.log(`YouTube Focus: 推奨動画アイテム${index}がdisplay: noneで非表示になっているため再表示中...`);
+                    item.style.removeProperty('display');
+                    console.log(`YouTube Focus: 推奨動画アイテム${index}を再表示しました`);
+                }
             }
         });
-
-        const shortsSection = document.querySelector('ytd-reel-shelf-renderer');
-        if (shortsSection) {
-            console.log('YouTube Focus: shortsSection要素を発見:', shortsSection);
-            if (shortsSection.dataset.hiddenByExtension) {
-                console.log('YouTube Focus: shortsSection要素を再表示中...');
-                showElement(shortsSection);
-            } else if (shortsSection.style.display === 'none') {
-                console.log('YouTube Focus: shortsSection要素がdisplay: noneで非表示になっているため再表示中...');
-                shortsSection.style.removeProperty('display');
-                console.log('YouTube Focus: shortsSection要素を再表示しました');
-            } else {
-                console.log('YouTube Focus: shortsSection要素は既に表示されています');
-            }
-        } else {
-            console.log('YouTube Focus: shortsSection要素が見つかりません');
-        }
 
         console.log('YouTube Focus: ホームページの推奨動画の再表示完了');
     }
@@ -301,61 +327,355 @@
 
     // ショート動画ページを非表示
     function hideShortsPage() {
+        // まず動画の音声を停止してから非表示にする
+        stopShortsAudio();
+
+        // 動画要素を直接操作して音声を停止
+        const allVideos = document.querySelectorAll('video');
+        allVideos.forEach(video => {
+            // 動画を強制的に停止
+            try {
+                video.pause();
+                video.muted = true;
+                video.volume = 0;
+                video.currentTime = 0;
+                video.setAttribute('muted', 'true');
+                video.setAttribute('volume', '0');
+                console.log('YouTube Focus: 動画要素を強制的に停止しました');
+            } catch (error) {
+                console.log('YouTube Focus: 動画要素の停止中にエラーが発生しました:', error);
+            }
+        });
+
+        // ショート動画ページ全体を非表示
         const shortsPlayer = document.querySelector('ytd-shorts-player');
         if (shortsPlayer) {
             hideElement(shortsPlayer, 'ショート動画ページ');
+        }
+
+        // ショート動画コンテナ全体を非表示
+        const shortsContainer = document.querySelector('#shorts-inner-container');
+        if (shortsContainer) {
+            hideElement(shortsContainer, 'ショート動画コンテナ');
+        }
+
+        // 個別のショート動画要素を非表示
+        const reelVideos = document.querySelectorAll('.reel-video-in-sequence-new');
+        reelVideos.forEach(video => {
+            hideElement(video, 'ショート動画アイテム');
+        });
+
+        // ytd-reel-video-renderer要素を非表示
+        const reelVideoRenderers = document.querySelectorAll('ytd-reel-video-renderer');
+        reelVideoRenderers.forEach(renderer => {
+            hideElement(renderer, 'ショート動画レンダラー');
+        });
+
+        // ショート動画のオーバーレイ要素を非表示
+        const overlayElements = document.querySelectorAll('.experiment-overlay');
+        overlayElements.forEach(overlay => {
+            hideElement(overlay, 'ショート動画オーバーレイ');
+        });
+
+        // アクションコンテナを非表示
+        const actionContainers = document.querySelectorAll('.action-container');
+        actionContainers.forEach(container => {
+            hideElement(container, 'ショート動画アクション');
+        });
+
+        // メタデータコンテナを非表示
+        const metadataContainers = document.querySelectorAll('.metadata-container');
+        metadataContainers.forEach(container => {
+            hideElement(container, 'ショート動画メタデータ');
+        });
+
+        // 定期的に音声をチェックして停止する（2秒ごと）
+        const audioCheckInterval = setInterval(() => {
+            if (!window.location.pathname.includes('/shorts/')) {
+                // ショート動画ページでなくなったら停止
+                clearInterval(audioCheckInterval);
+                return;
+            }
+            stopShortsAudio();
+        }, 2000);
+
+        // ページを離れる際にインターバルをクリア
+        window.addEventListener('beforeunload', () => {
+            clearInterval(audioCheckInterval);
+        });
+    }
+
+    // ショート動画の音声を停止する関数
+    function stopShortsAudio() {
+        // すべての動画要素の音声を停止
+        const videos = document.querySelectorAll('video');
+        videos.forEach(video => {
+            if (video) {
+                // 動画を一時停止
+                if (!video.paused) {
+                    video.pause();
+                    console.log('YouTube Focus: 動画を一時停止しました');
+                }
+                // 音声をミュート
+                video.muted = true;
+                video.volume = 0;
+                // 音声を無効化
+                video.setAttribute('muted', 'true');
+                video.setAttribute('volume', '0');
+                console.log('YouTube Focus: 動画の音声を停止しました');
+            }
+        });
+
+        // プレーヤー要素の音声も停止
+        const players = document.querySelectorAll('ytd-player');
+        players.forEach(player => {
+            const playerVideo = player.querySelector('video');
+            if (playerVideo) {
+                if (!playerVideo.paused) {
+                    playerVideo.pause();
+                    console.log('YouTube Focus: プレーヤーの動画を一時停止しました');
+                }
+                playerVideo.muted = true;
+                playerVideo.volume = 0;
+                playerVideo.setAttribute('muted', 'true');
+                playerVideo.setAttribute('volume', '0');
+                console.log('YouTube Focus: プレーヤーの音声を停止しました');
+            }
+        });
+
+        // ショート動画専用プレーヤーの音声も停止
+        const shortsPlayers = document.querySelectorAll('#shorts-player video');
+        shortsPlayers.forEach(video => {
+            if (video) {
+                if (!video.paused) {
+                    video.pause();
+                    console.log('YouTube Focus: ショート動画専用プレーヤーの動画を一時停止しました');
+                }
+                video.muted = true;
+                video.volume = 0;
+                video.setAttribute('muted', 'true');
+                video.setAttribute('volume', '0');
+                console.log('YouTube Focus: ショート動画専用プレーヤーの音声を停止しました');
+            }
+        });
+
+        // 音声が再生されている可能性がある要素をすべて停止
+        const allVideoElements = document.querySelectorAll('video, audio');
+        allVideoElements.forEach(media => {
+            if (media) {
+                if (!media.paused) {
+                    media.pause();
+                    console.log('YouTube Focus: メディア要素を一時停止しました');
+                }
+                media.muted = true;
+                if (media.volume !== undefined) {
+                    media.volume = 0;
+                }
+                media.setAttribute('muted', 'true');
+                if (media.hasAttribute('volume')) {
+                    media.setAttribute('volume', '0');
+                }
+                console.log('YouTube Focus: メディア要素の音声を停止しました');
+            }
+        });
+
+        // YouTubeの内部プレーヤーAPIも停止
+        if (window.YT && window.YT.Player) {
+            const ytPlayers = document.querySelectorAll('.html5-video-player');
+            ytPlayers.forEach(player => {
+                const playerVideo = player.querySelector('video');
+                if (playerVideo) {
+                    if (!playerVideo.paused) {
+                        playerVideo.pause();
+                        console.log('YouTube Focus: YouTubeプレーヤーの動画を一時停止しました');
+                    }
+                    playerVideo.muted = true;
+                    playerVideo.volume = 0;
+                    playerVideo.setAttribute('muted', 'true');
+                    playerVideo.setAttribute('volume', '0');
+                    console.log('YouTube Focus: YouTubeプレーヤーの音声を停止しました');
+                }
+            });
+        }
+
+        // YouTubeの内部APIを使用して音声を停止
+        try {
+            // YouTubeの内部プレーヤーオブジェクトを取得
+            const ytPlayerElements = document.querySelectorAll('ytd-player');
+            ytPlayerElements.forEach(playerElement => {
+                // プレーヤーの内部APIにアクセス
+                if (playerElement && playerElement.getPlayer) {
+                    const player = playerElement.getPlayer();
+                    if (player && typeof player.pauseVideo === 'function') {
+                        player.pauseVideo();
+                        console.log('YouTube Focus: YouTube内部APIで動画を一時停止しました');
+                    }
+                    if (player && typeof player.mute === 'function') {
+                        player.mute();
+                        console.log('YouTube Focus: YouTube内部APIで音声をミュートしました');
+                    }
+                }
+            });
+        } catch (error) {
+            console.log('YouTube Focus: YouTube内部APIの使用中にエラーが発生しました:', error);
         }
     }
 
     // ショート動画ページを再表示
     function showShortsPage() {
         showElementsByReason('ショート動画ページ');
+        showElementsByReason('ショート動画コンテナ');
+        showElementsByReason('ショート動画アイテム');
+        showElementsByReason('ショート動画レンダラー');
+        showElementsByReason('ショート動画オーバーレイ');
+        showElementsByReason('ショート動画アクション');
+        showElementsByReason('ショート動画メタデータ');
+
+        // 音声を復活させる
+        restoreShortsAudio();
+    }
+
+    // ショート動画の音声を復活させる関数
+    function restoreShortsAudio() {
+        // すべての動画要素の音声を復活
+        const videos = document.querySelectorAll('video');
+        videos.forEach(video => {
+            if (video) {
+                // ミュートを解除
+                video.muted = false;
+                video.volume = 1;
+                video.removeAttribute('muted');
+                video.removeAttribute('volume');
+                console.log('YouTube Focus: 動画の音声を復活しました');
+            }
+        });
+
+        // プレーヤー要素の音声も復活
+        const players = document.querySelectorAll('ytd-player');
+        players.forEach(player => {
+            const playerVideo = player.querySelector('video');
+            if (playerVideo) {
+                playerVideo.muted = false;
+                playerVideo.volume = 1;
+                playerVideo.removeAttribute('muted');
+                playerVideo.removeAttribute('volume');
+                console.log('YouTube Focus: プレーヤーの音声を復活しました');
+            }
+        });
+
+        // ショート動画専用プレーヤーの音声も復活
+        const shortsPlayers = document.querySelectorAll('#shorts-player video');
+        shortsPlayers.forEach(video => {
+            if (video) {
+                video.muted = false;
+                video.volume = 1;
+                video.removeAttribute('muted');
+                video.removeAttribute('volume');
+                console.log('YouTube Focus: ショート動画専用プレーヤーの音声を復活しました');
+            }
+        });
+
+        // 音声が再生されている可能性がある要素をすべて復活
+        const allVideoElements = document.querySelectorAll('video, audio');
+        allVideoElements.forEach(media => {
+            if (media) {
+                media.muted = false;
+                if (media.volume !== undefined) {
+                    media.volume = 1;
+                }
+                media.removeAttribute('muted');
+                if (media.hasAttribute('volume')) {
+                    media.removeAttribute('volume');
+                }
+                console.log('YouTube Focus: メディア要素の音声を復活しました');
+            }
+        });
+
+        // YouTubeの内部APIを使用して音声を復活
+        try {
+            // YouTubeの内部プレーヤーオブジェクトを取得
+            const ytPlayerElements = document.querySelectorAll('ytd-player');
+            ytPlayerElements.forEach(playerElement => {
+                // プレーヤーの内部APIにアクセス
+                if (playerElement && playerElement.getPlayer) {
+                    const player = playerElement.getPlayer();
+                    if (player && typeof player.unMute === 'function') {
+                        player.unMute();
+                        console.log('YouTube Focus: YouTube内部APIで音声を復活しました');
+                    }
+                }
+            });
+        } catch (error) {
+            console.log('YouTube Focus: YouTube内部APIの使用中にエラーが発生しました:', error);
+        }
     }
 
     // 現在のページを処理
     async function processCurrentPage() {
         try {
-            console.log('YouTube Focus: ページ処理開始');
             const settings = await getSettings();
             const path = window.location.pathname;
 
-            console.log('YouTube Focus: ページ処理開始', { path, settings });
-
             // 設定の状態に応じてCSSクラスを追加・削除
-            if (settings.hideSuggestions || settings.hideShorts || settings.hideShortsInSearch) {
-                document.body.classList.add('youtube-focus-enabled');
-                document.body.classList.remove('youtube-focus-disabled');
+            if (settings.hideSuggestions) {
+                document.body.classList.add('hide-suggestions-enabled');
+                document.body.classList.remove('hide-suggestions-disabled');
             } else {
-                document.body.classList.add('youtube-focus-disabled');
-                document.body.classList.remove('youtube-focus-enabled');
+                document.body.classList.add('hide-suggestions-disabled');
+                document.body.classList.remove('hide-suggestions-enabled');
             }
 
+            if (settings.hideShorts) {
+                document.body.classList.add('hide-shorts-enabled');
+                document.body.classList.remove('hide-shorts-disabled');
+            } else {
+                document.body.classList.add('hide-shorts-disabled');
+                document.body.classList.remove('hide-shorts-enabled');
+            }
+
+            if (settings.hideShortsInSearch) {
+                document.body.classList.add('hide-shorts-search-enabled');
+                document.body.classList.remove('hide-shorts-search-disabled');
+            } else {
+                document.body.classList.add('hide-shorts-search-disabled');
+                document.body.classList.remove('hide-shorts-search-enabled');
+            }
+
+            // ホームページの処理
             if (path === '/') {
-                // ホームページ
                 console.log('YouTube Focus: ホームページを処理中...');
+
+                // 推奨動画/ショート動画の処理
                 if (settings.hideSuggestions) {
                     console.log('YouTube Focus: ホームページの推奨動画を非表示にします');
                     hideHomePageSuggestions();
+                    hideHomePageShorts();
                 } else {
-                    console.log('YouTube Focus: ホームページの推奨動画設定がオフのため、処理をスキップします');
+                    console.log('YouTube Focus: ホームページの推奨動画設定がオフのため、再表示します');
+                    showHomePageSuggestions();
+                    showHomePageShorts();
                 }
-            } else if (path.includes('/results')) {
-                // 検索結果ページ
-                console.log('YouTube Focus: 検索結果ページを処理中...');
+            }
+
+            // 検索結果ページの処理
+            if (path.includes('/results')) {
                 if (settings.hideShortsInSearch) {
                     console.log('YouTube Focus: 検索結果ページのショート動画を非表示にします');
                     hideSearchResultsShorts();
                 } else {
-                    console.log('YouTube Focus: 検索結果ページのショート動画設定がオフのため、処理をスキップします');
+                    console.log('YouTube Focus: 検索結果ページのショート動画設定がオフのため、再表示します');
+                    showSearchResultsShorts();
                 }
-            } else if (path.includes('/shorts/')) {
-                // ショート動画ページ
-                console.log('YouTube Focus: ショート動画ページを処理中...');
+            }
+
+            // ショート動画ページの処理
+            if (path.includes('/shorts/')) {
                 if (settings.hideShorts) {
                     console.log('YouTube Focus: ショート動画ページを非表示にします');
                     hideShortsPage();
                 } else {
-                    console.log('YouTube Focus: ショート動画ページ設定がオフのため、処理をスキップします');
+                    console.log('YouTube Focus: ショート動画ページ設定がオフのため、再表示します');
+                    showShortsPage();
                 }
             }
         } catch (error) {
@@ -373,6 +693,72 @@
                 }
             } catch (fallbackError) {
                 console.warn('フォールバック処理中にもエラーが発生しました:', fallbackError);
+            }
+        }
+    }
+
+    // 指定された設定で現在のページを処理する関数
+    function processCurrentPageWithSettings(settings) {
+        const path = window.location.pathname;
+
+        // 設定の状態に応じてCSSクラスを追加・削除
+        if (settings.hideSuggestions) {
+            document.body.classList.add('hide-suggestions-enabled');
+            document.body.classList.remove('hide-suggestions-disabled');
+        } else {
+            document.body.classList.add('hide-suggestions-disabled');
+            document.body.classList.remove('hide-suggestions-enabled');
+        }
+
+        if (settings.hideShorts) {
+            document.body.classList.add('hide-shorts-enabled');
+            document.body.classList.remove('hide-shorts-disabled');
+        } else {
+            document.body.classList.add('hide-shorts-disabled');
+            document.body.classList.remove('hide-shorts-enabled');
+        }
+
+        if (settings.hideShortsInSearch) {
+            document.body.classList.add('hide-shorts-search-enabled');
+            document.body.classList.remove('hide-shorts-search-disabled');
+        } else {
+            document.body.classList.add('hide-shorts-search-disabled');
+            document.body.classList.remove('hide-shorts-search-enabled');
+        }
+
+        // ホームページの処理
+        if (path === '/') {
+            // 推奨動画/ショート動画の処理
+            if (settings.hideSuggestions) {
+                console.log('YouTube Focus: ホームページの推奨動画を非表示にします');
+                hideHomePageSuggestions();
+                hideHomePageShorts();
+            } else {
+                console.log('YouTube Focus: ホームページの推奨動画設定がオフのため、再表示します');
+                showHomePageSuggestions();
+                showHomePageShorts();
+            }
+        }
+
+        // 検索結果ページの処理
+        if (path.includes('/results')) {
+            if (settings.hideShortsInSearch) {
+                console.log('YouTube Focus: 検索結果ページのショート動画を非表示にします');
+                hideSearchResultsShorts();
+            } else {
+                console.log('YouTube Focus: 検索結果ページのショート動画設定がオフのため、再表示します');
+                showSearchResultsShorts();
+            }
+        }
+
+        // ショート動画ページの処理
+        if (path.includes('/shorts/')) {
+            if (settings.hideShorts) {
+                console.log('YouTube Focus: ショート動画ページを非表示にします');
+                hideShortsPage();
+            } else {
+                console.log('YouTube Focus: ショート動画ページ設定がオフのため、再表示します');
+                showShortsPage();
             }
         }
     }
@@ -397,7 +783,11 @@
                                 node.matches('ytd-rich-item-renderer') ||
                                 node.matches('ytd-reel-shelf-renderer') ||
                                 node.matches('.shortsLockupViewModelHost') ||
-                                node.matches('ytd-reel-item-renderer')
+                                node.matches('ytd-reel-item-renderer') ||
+                                node.matches('ytd-shorts-player') ||
+                                node.matches('#shorts-inner-container') ||
+                                node.matches('.reel-video-in-sequence-new') ||
+                                node.matches('ytd-reel-video-renderer')
                             )) {
                                 shouldProcess = true;
                                 break;
@@ -427,7 +817,6 @@
         });
 
         document.addEventListener('yt-navigate-finish', () => {
-            console.log('YouTube Focus: ページ遷移完了');
             setTimeout(processCurrentPage, 500);
         });
 
@@ -451,8 +840,6 @@
     async function initialize() {
         if (isInitialized) return;
 
-        console.log('YouTube Focus: 拡張機能を初期化中...');
-
         try {
             // DOM準備完了を待つ
             if (document.readyState === 'loading') {
@@ -462,7 +849,6 @@
                         setupObserver();
                         processCurrentPage();
                         isInitialized = true;
-                        console.log('YouTube Focus: 初期化完了');
                     } catch (error) {
                         console.warn('DOMContentLoaded後の初期化中にエラーが発生しました:', error);
                         // 基本的な機能は動作させる
@@ -476,7 +862,6 @@
                 setupObserver();
                 processCurrentPage();
                 isInitialized = true;
-                console.log('YouTube Focus: 初期化完了');
             }
         } catch (error) {
             console.warn('初期化中にエラーが発生しました:', error);
@@ -529,48 +914,6 @@
             }
         } catch (error) {
             console.warn('メッセージリスナーの設定中にエラーが発生しました:', error);
-        }
-    }
-
-    // 指定された設定で現在のページを処理する関数
-    function processCurrentPageWithSettings(settings) {
-        const path = window.location.pathname;
-
-        console.log('YouTube Focus: 指定された設定でページ処理開始', { path, settings });
-
-        // 設定の状態に応じてCSSクラスを追加・削除
-        if (settings.hideSuggestions || settings.hideShorts || settings.hideShortsInSearch) {
-            document.body.classList.add('youtube-focus-enabled');
-            document.body.classList.remove('youtube-focus-disabled');
-        } else {
-            document.body.classList.add('youtube-focus-disabled');
-            document.body.classList.remove('youtube-focus-enabled');
-        }
-
-        if (path === '/') {
-            // ホームページ
-            if (settings.hideSuggestions) {
-                console.log('YouTube Focus: ホームページの推奨動画を非表示にします');
-                hideHomePageSuggestions();
-            } else {
-                console.log('YouTube Focus: ホームページの推奨動画設定がオフのため、処理をスキップします');
-            }
-        } else if (path.includes('/results')) {
-            // 検索結果ページ
-            if (settings.hideShortsInSearch) {
-                console.log('YouTube Focus: 検索結果ページのショート動画を非表示にします');
-                hideSearchResultsShorts();
-            } else {
-                console.log('YouTube Focus: 検索結果ページのショート動画設定がオフのため、処理をスキップします');
-            }
-        } else if (path.includes('/shorts/')) {
-            // ショート動画ページ
-            if (settings.hideShorts) {
-                console.log('YouTube Focus: ショート動画ページを非表示にします');
-                hideShortsPage();
-            } else {
-                console.log('YouTube Focus: ショート動画ページ設定がオフのため、処理をスキップします');
-            }
         }
     }
 
