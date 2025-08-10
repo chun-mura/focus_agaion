@@ -8,56 +8,79 @@ class PopupManager {
             hideShortsInSearch: false
         };
 
+        this.updateInterval = null;
         this.init();
     }
 
     async init() {
-        await this.loadSettings();
-        this.setupEventListeners();
-        this.updateUI();
-        this.updateStatus();
+        try {
+            console.log('Focus Agaion: ポップアップの初期化を開始...');
+            await this.loadSettings();
+            this.setupEventListeners();
+            this.updateUI();
+            await this.updateStatus();
+
+            // 定期的なページ状態更新を開始
+            this.startPeriodicUpdate();
+
+            console.log('Focus Agaion: ポップアップの初期化が完了しました');
+        } catch (error) {
+            console.error('Focus Agaion: ポップアップの初期化に失敗しました:', error);
+            // エラーが発生した場合でも基本的なUIは表示
+            this.setupEventListeners();
+            this.updateUI();
+            // エラーメッセージを表示
+            document.getElementById('currentPage').textContent = '初期化エラー';
+            document.getElementById('extensionStatus').textContent = 'エラー';
+        }
     }
 
     // 設定を読み込み
     async loadSettings() {
         try {
-            console.log('Focus Agaion: 設定読み込み開始');
             const result = await chrome.storage.sync.get(this.settings);
-            console.log('Focus Agaion: ストレージから取得した設定:', result);
             this.settings = { ...this.settings, ...result };
-            console.log('Focus Agaion: 最終設定:', this.settings);
+            console.log('Focus Agaion: 設定を読み込みました', this.settings);
         } catch (error) {
-            console.error('設定の読み込みに失敗しました:', error);
+            console.error('Focus Agaion: 設定の読み込みに失敗しました:', error);
+            // エラーが発生した場合はデフォルト設定を使用
+            this.settings = {
+                hideSuggestions: false,
+                hideShorts: false,
+                hideShortsInSearch: false
+            };
         }
     }
 
     // 設定を保存
     async saveSettings() {
         try {
-            console.log('Focus Agaion: 設定保存開始:', this.settings);
+            console.log('Focus Agaion: 設定を保存中...', this.settings);
             await chrome.storage.sync.set(this.settings);
-            console.log('Focus Agaion: 設定を保存しました:', this.settings);
 
             // 現在のYouTubeタブに設定変更を通知
             const tabs = await chrome.tabs.query({ url: 'https://www.youtube.com/*' });
-            console.log('Focus Agaion: 通知対象タブ数:', tabs.length);
+            console.log('Focus Agaion: YouTubeタブを検索中...', tabs.length, '個のタブが見つかりました');
+
             for (const tab of tabs) {
                 try {
-                    console.log('Focus Agaion: タブに設定変更を通知中:', tab.id);
                     await chrome.tabs.sendMessage(tab.id, {
                         action: 'updateSettings',
                         settings: this.settings
                     });
-                    console.log('Focus Agaion: タブへの通知完了:', tab.id);
+                    console.log('Focus Agaion: タブ', tab.id, 'に設定変更を通知しました');
                 } catch (error) {
-                    // タブが閉じられている場合などは無視
-                    console.log('タブへのメッセージ送信に失敗:', error);
+                    console.warn('Focus Agaion: タブ', tab.id, 'への通知に失敗しました:', error);
                 }
             }
 
-            this.showNotification('設定を保存しました');
+            // 設定変更後にページ状態も更新
+            await this.updateStatus();
+
+            this.showNotification('設定を保存し、YouTubeページに即座に反映しました');
+            console.log('Focus Agaion: 設定の保存が完了しました');
         } catch (error) {
-            console.error('設定の保存に失敗しました:', error);
+            console.error('Focus Agaion: 設定の保存に失敗しました:', error);
             this.showNotification('設定の保存に失敗しました', 'error');
         }
     }
@@ -74,9 +97,26 @@ class PopupManager {
             await chrome.storage.sync.set(defaultSettings);
             this.settings = defaultSettings;
             this.updateUI();
-            this.showNotification('設定をリセットしました');
+
+            // 現在のYouTubeタブに設定変更を通知
+            const tabs = await chrome.tabs.query({ url: 'https://www.youtube.com/*' });
+            for (const tab of tabs) {
+                try {
+                    await chrome.tabs.sendMessage(tab.id, {
+                        action: 'updateSettings',
+                        settings: defaultSettings
+                    });
+                } catch (error) {
+                    // タブが閉じられている場合などは無視
+                }
+            }
+
+            this.showNotification('設定をリセットし、YouTubeページに即座に反映しました');
+
+            // リセット後にもページ状態を更新
+            await this.updateStatus();
         } catch (error) {
-            console.error('設定のリセットに失敗しました:', error);
+            console.error('Focus Agaion: 設定のリセットに失敗しました:', error);
             this.showNotification('設定のリセットに失敗しました', 'error');
         }
     }
@@ -91,13 +131,18 @@ class PopupManager {
     // 現在の状態を更新
     async updateStatus() {
         try {
-            // 現在のタブ情報を取得
+            console.log('Focus Agaion: ページ状態を更新中...');
+
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+            console.log('Focus Agaion: アクティブタブを検索中...', tabs);
+
             const currentTab = tabs[0];
+            console.log('Focus Agaion: 現在のタブ:', currentTab);
 
             if (currentTab && currentTab.url && currentTab.url.includes('youtube.com')) {
                 const url = new URL(currentTab.url);
                 const path = url.pathname;
+                console.log('Focus Agaion: YouTubeページを検出:', path);
 
                 let pageType = 'その他';
                 if (path === '/') {
@@ -110,16 +155,44 @@ class PopupManager {
                     pageType = 'ショート動画ページ';
                 }
 
+                console.log('Focus Agaion: ページタイプを設定:', pageType);
                 document.getElementById('currentPage').textContent = pageType;
                 document.getElementById('extensionStatus').textContent = '有効';
+                console.log('Focus Agaion: ページ状態の更新が完了しました');
             } else {
+                console.log('Focus Agaion: YouTubeページではありません:', currentTab?.url);
                 document.getElementById('currentPage').textContent = 'YouTubeページではありません';
                 document.getElementById('extensionStatus').textContent = '無効';
             }
         } catch (error) {
-            console.error('状態の更新に失敗しました:', error);
+            console.error('Focus Agaion: 状態の更新に失敗しました:', error);
             document.getElementById('currentPage').textContent = 'エラー';
             document.getElementById('extensionStatus').textContent = 'エラー';
+        }
+    }
+
+    // 定期的なページ状態更新を開始
+    startPeriodicUpdate() {
+        // 既存のインターバルをクリア
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+
+        // 5秒ごとにページ状態を更新
+        this.updateInterval = setInterval(async () => {
+            try {
+                await this.updateStatus();
+            } catch (error) {
+                console.warn('Focus Agaion: 定期更新中にエラーが発生しました:', error);
+            }
+        }, 5000);
+    }
+
+    // 定期的なページ状態更新を停止
+    stopPeriodicUpdate() {
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
         }
     }
 
@@ -128,19 +201,17 @@ class PopupManager {
         // 設定チェックボックスの変更
         document.getElementById('hideSuggestions').addEventListener('change', (e) => {
             this.settings.hideSuggestions = e.target.checked;
+            this.saveSettings(); // 自動保存
         });
 
         document.getElementById('hideShorts').addEventListener('change', (e) => {
             this.settings.hideShorts = e.target.checked;
+            this.saveSettings(); // 自動保存
         });
 
         document.getElementById('hideShortsInSearch').addEventListener('change', (e) => {
             this.settings.hideShortsInSearch = e.target.checked;
-        });
-
-        // 保存ボタン
-        document.getElementById('saveSettings').addEventListener('click', () => {
-            this.saveSettings();
+            this.saveSettings(); // 自動保存
         });
 
         // リセットボタン
@@ -148,6 +219,11 @@ class PopupManager {
             if (confirm('設定をリセットしますか？')) {
                 this.resetSettings();
             }
+        });
+
+        // ポップアップが閉じられる時の処理
+        window.addEventListener('beforeunload', () => {
+            this.stopPeriodicUpdate();
         });
     }
 
@@ -177,11 +253,14 @@ class PopupManager {
             z-index: 1000;
             animation: slideIn 0.3s ease-out;
             background: ${type === 'error' ? '#dc3545' : '#28a745'};
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            max-width: 300px;
+            word-wrap: break-word;
         `;
 
         document.body.appendChild(notification);
 
-        // 3秒後に自動削除
+        // 4秒後に自動削除
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease-out';
             setTimeout(() => {
@@ -189,7 +268,7 @@ class PopupManager {
                     notification.remove();
                 }
             }, 300);
-        }, 3000);
+        }, 4000);
     }
 }
 
@@ -222,5 +301,13 @@ document.head.appendChild(style);
 
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
-    new PopupManager();
+    console.log('Focus Agaion: DOMContentLoadedイベントが発生しました');
+    try {
+        new PopupManager();
+    } catch (error) {
+        console.error('Focus Agaion: PopupManagerの初期化に失敗しました:', error);
+        // エラーが発生した場合のフォールバック処理
+        document.getElementById('currentPage').textContent = '初期化エラー';
+        document.getElementById('extensionStatus').textContent = 'エラー';
+    }
 });

@@ -6,9 +6,9 @@ chrome.runtime.onInstalled.addListener((details) => {
 
     // デフォルト設定を初期化
     const defaultSettings = {
-        hideSuggestions: true,
-        hideShorts: true,
-        hideShortsInSearch: true
+        hideSuggestions: false,
+        hideShorts: false,
+        hideShortsInSearch: false
     };
 
     chrome.storage.sync.get(defaultSettings, (result) => {
@@ -29,32 +29,14 @@ chrome.action.onClicked.addListener((tab) => {
     }
 });
 
-// タブの更新を監視
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === 'complete' && tab.url && tab.url.includes('youtube.com')) {
-        console.log('Focus Agaion: YouTubeページが読み込まれました');
-
-        // Content Scriptにメッセージを送信
-        chrome.tabs.sendMessage(tabId, {
-            action: 'pageLoaded',
-            url: tab.url
-        }).catch(() => {
-            // Content Scriptがまだ読み込まれていない場合は無視
-            console.log('Focus Agaion: Content Scriptがまだ読み込まれていません');
-        });
-    }
-});
-
 // メッセージリスナー
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log('Focus Agaion: メッセージを受信', request);
-
     switch (request.action) {
         case 'getSettings':
             chrome.storage.sync.get(null, (settings) => {
                 sendResponse({ settings });
             });
-            return true; // 非同期レスポンスを示す
+            return true;
 
         case 'updateSettings':
             chrome.storage.sync.set(request.settings, () => {
@@ -88,8 +70,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.runtime.onSuspend.addListener(() => {
     console.log('Focus Agaion: Service Workerが停止します');
 });
-
-// 定期的なヘルスチェック（オプション）
-setInterval(() => {
-    console.log('Focus Agaion: Service Worker ヘルスチェック');
-}, 300000); // 5分ごと

@@ -65,8 +65,6 @@ focus_agaion/
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
-├── package.json         # プロジェクト設定
-├── .gitignore          # Git除外設定
 ├── LICENSE             # ライセンス
 └── README.md           # このファイル
 ```
@@ -79,6 +77,7 @@ focus_agaion/
 - YouTubeのDOM要素を動的に監視
 - MutationObserverによる新しい要素の検出
 - 設定に基づく要素の非表示化
+- 最適化されたパフォーマンス
 
 #### Background Script (background.js)
 - Service Workerとして動作
@@ -109,6 +108,20 @@ const shortsPlayer = document.querySelector('ytd-shorts-player');
 - `hideShorts`: ショート動画ページを非表示
 - `hideShortsInSearch`: 検索結果のショート動画を非表示
 
+## 最適化された機能
+
+### パフォーマンス改善
+- 重複したDOMクエリの削除
+- 効率的な要素検索アルゴリズム
+- 不要なログ出力の削除
+- 最適化されたCSSセレクタ
+
+### コード品質
+- 関数の統合と簡素化
+- エラーハンドリングの改善
+- 重複コードの削除
+- メンテナンス性の向上
+
 ## 配布について
 
 この拡張機能は配布を予定しています。Chrome Web Storeでの公開を目指して開発されています。
@@ -130,6 +143,11 @@ const shortsPlayer = document.querySelector('ytd-shorts-player');
 
 ## 更新履歴
 
+- v1.0.1: パフォーマンス最適化
+  - 重複コードの削除
+  - DOMクエリの最適化
+  - CSSセレクタの統合
+  - ログ出力の最適化
 - v1.0.0: 初期リリース
   - 基本的な要素非表示機能
   - 設定可能なUI
