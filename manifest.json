@@ -5,8 +5,7 @@
   "description": "YouTubeのサジェスト欄とショート動画を非表示にして、集中力を向上させる拡張機能",
   "permissions": [
     "activeTab",
-    "storage",
-    "scripting"
+    "storage"
   ],
   "host_permissions": [
     "https://www.youtube.com/*"

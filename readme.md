@@ -127,11 +127,6 @@ docker run -it --rm -v $(pwd):/app focus-agaion-extension npm run build
 - **具体的な処理**: 設定の保存・取得、複数デバイス間での設定同期
 - **コード例**: `chrome.storage.sync.set()`, `chrome.storage.sync.get()`
 
-#### scripting 権限
-- **用途**: YouTubeページへの動的コンテンツスクリプト注入、SPAナビゲーション対応
-- **具体的な処理**: 動的コンテンツの監視、DOM変更のリアルタイム処理
-- **コード例**: `MutationObserver`による要素変更の監視
-
 #### ホスト権限（https://www.youtube.com/*）
 - **用途**: YouTubeページでのみ拡張機能を動作させる
 - **具体的な処理**: YouTube固有のDOM要素へのアクセス、ページ遷移イベントの監視
