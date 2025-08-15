@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Focus Agaion Extension",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "YouTubeのサジェスト欄とショート動画を非表示にして、集中力を向上させる拡張機能",
   "permissions": [
     "activeTab",
