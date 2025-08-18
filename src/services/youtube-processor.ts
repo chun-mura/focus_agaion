@@ -17,6 +17,16 @@ export class YouTubeProcessor {
     this.processCurrentPage();
   }
 
+  // ホームページかどうかを判定（厳密にホームページのみ）
+  private isHomePage(): boolean {
+    const path = window.location.pathname;
+    const search = window.location.search;
+    const hash = window.location.hash;
+
+    // パスが '/' で、クエリパラメータやハッシュがない場合のみホームページ
+    return path === '/' && search === '' && hash === '';
+  }
+
   // 初期化
   initialize(): void {
     if (this.isInitialized) return;
@@ -37,14 +47,15 @@ export class YouTubeProcessor {
   processCurrentPage(): void {
     try {
       const path = window.location.pathname;
+      const isHomePage = this.isHomePage();
 
       // 設定の状態に応じてCSSクラスを追加・削除
-      document.body.classList.toggle('hide-suggestions-enabled', this.settings.hideSuggestions);
+      document.body.classList.toggle('hide-suggestions-enabled', this.settings.hideSuggestions && isHomePage);
       document.body.classList.toggle('hide-shorts-enabled', this.settings.hideShorts);
       document.body.classList.toggle('hide-shorts-search-enabled', this.settings.hideShortsInSearch);
 
-      // ホームページの処理
-      if (path === '/') {
+      // ホームページの処理（厳密にホームページのみ）
+      if (isHomePage) {
         this.processHomePage();
       }
 
@@ -58,7 +69,7 @@ export class YouTubeProcessor {
         this.processShortsPage();
       }
 
-      console.log('ページ処理が完了しました', { path, settings: this.settings });
+      console.log('ページ処理が完了しました', { path, isHomePage, settings: this.settings });
     } catch (error) {
       console.warn('ページ処理中にエラーが発生しました:', error);
     }
@@ -66,6 +77,11 @@ export class YouTubeProcessor {
 
   // ホームページの処理
   private processHomePage(): void {
+    // 再度ホームページかどうかを確認
+    if (!this.isHomePage()) {
+      return;
+    }
+
     if (this.settings.hideSuggestions) {
       this.hideHomePageSuggestions();
       this.hideHomePageShorts();
@@ -106,6 +122,11 @@ export class YouTubeProcessor {
 
   // ホームページ要素を再表示
   private showHomePageElements(): void {
+    // ホームページかどうかを確認
+    if (!this.isHomePage()) {
+      return;
+    }
+
     showElementsByReason(HIDE_REASONS.HOME_PAGE_SUGGESTIONS);
     showElementsByReason(HIDE_REASONS.HOME_PAGE_SHORTS_SECTION);
     showElementsByReason(HIDE_REASONS.HOME_PAGE_SHORTS_ITEM);
@@ -140,8 +161,8 @@ export class YouTubeProcessor {
 
     const shortsSections = document.querySelectorAll(YOUTUBE_SELECTORS.SHELF_RENDERER);
     Array.from(shortsSections).forEach(section => {
-      const titleElement = section.querySelector(YOUTUBE_SELECTORS.TITLE_ELEMENT);
-      if (titleElement && titleElement.textContent?.includes('ショート')) {
+              const titleElement = section.querySelector(YOUTUBE_SELECTORS.TITLE_ELEMENT);
+        if (titleElement && titleElement.textContent && titleElement.textContent.includes('ショート')) {
         hideElement(section, HIDE_REASONS.SEARCH_RESULTS_SHORTS_SECTION);
       }
     });
